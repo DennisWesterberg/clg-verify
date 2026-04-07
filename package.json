@@ -1,6 +1,6 @@
 {
   "name": "@clgplatform/verify",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.3",
   "description": "Standalone verifier for CLG signed decision receipts. Validates signatures and hash chains without contacting the CLG platform.",
   "keywords": [
     "clg",
@@ -25,7 +25,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "clg-verify": "./dist/cli.js"
+    "clg-verify": "bin/clg-verify.js"
   },
   "exports": {
     ".": {
@@ -36,6 +36,7 @@
   },
   "files": [
     "dist",
+    "bin",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"

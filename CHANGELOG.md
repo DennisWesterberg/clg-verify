@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0-beta.3] - 2026-04-08
+
+### Fixed
+
+- CLI bin script moved to `bin/clg-verify.js` wrapper — resolves npm stripping bin entries
+- `npx clg-verify` now works as expected
+
+## [1.0.0-beta.2] - 2026-04-08
+
+### Fixed
+
+- CLI bin script shebang added (npm still stripped bin entry due to path validation)
+
 ## [1.0.0-beta.1] - 2026-04-07
 
 ### Added
