@@ -1,0 +1,67 @@
+{
+  "name": "@clgplatform/verify",
+  "version": "1.0.0-beta.1",
+  "description": "Standalone verifier for CLG signed decision receipts. Validates signatures and hash chains without contacting the CLG platform.",
+  "keywords": [
+    "clg",
+    "cryptographic-verification",
+    "decision-receipts",
+    "hash-chain",
+    "ai-accountability",
+    "mcp"
+  ],
+  "homepage": "https://github.com/DennisWesterberg/clg-verify#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DennisWesterberg/clg-verify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DennisWesterberg/clg-verify/issues"
+  },
+  "author": "Aistrateg Malmö AB <dennis@aistrateg.se>",
+  "license": "BUSL-1.1",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "clg-verify": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.11",
+    "@typescript-eslint/eslint-plugin": "^8.32.0",
+    "@typescript-eslint/parser": "^8.32.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "eslint": "^9.25.1",
+    "prettier": "^3.5.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.2",
+    "vitest": "^2.1.9"
+  }
+}
