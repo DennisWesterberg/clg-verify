@@ -1,118 +1,124 @@
 # @clgplatform/verify
 
-> Standalone cryptographic verifier for CLG decision receipts. Trust math, not us.
+Independent verifier for CLG signed receipts and receipt chains.
 
-Part of the [CLG (Causal Liability Gateway)](https://clgplatform.com) product suite — a system that makes AI actions verifiable, mandate-bound, and technically auditable through signed decision receipts, tamper-evident chaining, and independent verification.
+![npm](https://img.shields.io/npm/v/@clgplatform/verify) ![node](https://img.shields.io/node/v/@clgplatform/verify) ![license](https://img.shields.io/badge/license-BUSL--1.1-orange)
 
-This package verifies the integrity and authenticity of signed decision receipts produced by the CLG Platform — without contacting the platform itself.
+## What it is
 
-## What it does
+`@clgplatform/verify` is a verification layer for receipts emitted by CLG-integrated runtimes.
+It validates receipt integrity and authenticity cryptographically.
 
-- **Hash verification**: Recomputes the canonical hash of receipt content and compares it to the stored `receipt_hash`.
-- **Signature verification**: Validates the ECDSA-P256/SHA-256 signature using the signing key's public key.
-- **Chain verification**: Checks that `previous_receipt_hashes` link receipts into an unbroken chain.
-- **Zero dependencies**: Uses only `node:crypto` and `node:fs` from the Node.js standard library.
+## What it verifies
 
-## Quick start
+- canonical hash matches content
+- signature is valid
+- required fields are present
+- previous receipt hashes link correctly in chains
+
+## What it does not do
+
+- does not intercept MCP tool calls
+- does not enforce mandates
+- does not create receipts
+- does not replace runtime controls or governance processes
+
+It can verify offline when you provide a local key/resolver.
+By default, CLI/library flows may resolve keys over HTTP unless you pass a local resolver.
+
+## Installation
 
 ```bash
 npm install @clgplatform/verify
 ```
 
-```ts
-import { verifyReceipt, staticResolver } from '@clgplatform/verify';
+## Quick start
 
-const result = await verifyReceipt(receipt, publicKeyPem);
-console.log(result.valid); // true or false
+```ts
+import { verifyReceipt, fileResolver } from '@clgplatform/verify';
+
+const result = await verifyReceipt(receipt, fileResolver('./signing-key.pem'));
+console.log(result.valid);
 ```
 
 ## CLI usage
 
 ```bash
-npm install -g @clgplatform/verify
+# single receipt
+clg-verify receipt receipt.json
 
-# Verify a single receipt (fetches public key from CLG platform)
-clg-verify receipt path/to/receipt.json
+# chain
+clg-verify chain receipts.json
 
-# Verify with a local public key
+# local key file
 clg-verify --public-key signing-key.pem receipt receipt.json
 
-# Verify a receipt chain
-clg-verify --public-key signing-key.pem chain receipts.json
+# JWKS-style endpoint
+clg-verify --jwks https://api.clgplatform.com/.well-known/clg-keys receipt receipt.json
 
-# Human-readable output
-clg-verify --pretty --public-key key.pem receipt receipt.json
+# force no default HTTP key lookup (requires --public-key or --jwks)
+clg-verify --offline --public-key signing-key.pem receipt receipt.json
 
-# Read from stdin
-cat receipt.json | clg-verify --public-key key.pem receipt -
+# pretty JSON output
+clg-verify --pretty --public-key signing-key.pem chain receipts.json
+
+# stdin
+cat receipt.json | clg-verify --public-key signing-key.pem receipt -
 ```
 
-### Exit codes
+## Exit codes
 
 | Code | Meaning |
-|------|---------|
-| 0    | Valid   |
-| 1    | Invalid |
-| 2    | Error (network, file, parse) |
+|---:|---|
+| 0 | Valid |
+| 1 | Invalid |
+| 2 | Error (network, file, parse) |
 
 ## Library usage
 
-### Verify a single receipt
+Single receipt:
 
 ```ts
 import { verifyReceipt, httpResolver } from '@clgplatform/verify';
 
 const result = await verifyReceipt(receipt, httpResolver('https://api.clgplatform.com'));
-
-if (result.valid) {
-  console.log('Receipt is authentic and untampered');
-} else {
-  console.error('Verification failed:', result.errors);
-}
 ```
 
-### Verify a chain
+Receipt chain:
 
 ```ts
-import { verifyChain, fileResolver } from '@clgplatform/verify';
+import { verifyChain, jwksResolver } from '@clgplatform/verify';
 
-const receipts = JSON.parse(fs.readFileSync('chain.json', 'utf-8'));
-const result = await verifyChain(receipts, fileResolver('./signing-key.pem'));
-
-console.log(`Chain: ${result.length} receipts, valid: ${result.valid}`);
-if (result.chainErrors.length > 0) {
-  console.error('Chain errors:', result.chainErrors);
-}
+const result = await verifyChain(receipts, jwksResolver('https://api.clgplatform.com/.well-known/clg-keys'));
 ```
 
 ## Resolvers
 
-Resolvers fetch the public key needed to verify signatures:
+- `httpResolver(baseUrl?)` → fetches `{baseUrl}/v1/keys/{kid}`
+- `jwksResolver(url?)` → fetches key set once and caches by `kid`
+- `staticResolver(pem)` → always returns the same PEM
+- `fileResolver(path)` → reads PEM from local file
 
-| Resolver | Description |
-|----------|-------------|
-| `httpResolver(baseUrl?)` | Fetches from `{baseUrl}/v1/keys/{kid}`. Default: CLG platform API. |
-| `jwksResolver(url?)` | Fetches JWKS-like key set from `{url}`. Caches after first call. |
-| `staticResolver(pem)` | Returns the same PEM key for any signing_key_id. |
-| `fileResolver(path)` | Reads PEM from a file path. |
-
-You can also pass a PEM string directly instead of a resolver.
+You can also pass a PEM string directly to `verifyReceipt` / `verifyChain`.
 
 ## How verification works
 
-1. **Content extraction**: All fields except `receipt_hash`, `signature_value`, and `signing_key_id` are extracted.
-2. **Canonicalization**: Object keys are sorted recursively, timestamps normalized to second precision, unicode NFC-normalized.
-3. **Hash computation**: SHA-256 of the canonical JSON produces a deterministic hash.
-4. **Hash comparison**: The computed hash must match `receipt_hash` stored in the receipt.
-5. **Signature check**: The `signature_value` (base64 DER) is verified against `receipt_hash` using the signer's ECDSA-P256 public key.
-6. **Chain linking**: For chains, each receipt's `previous_receipt_hashes` must include the preceding receipt's hash.
+1. Select canonical content fields.
+2. Canonicalize the content.
+3. Hash canonical content.
+4. Compare computed hash with `receipt_hash`.
+5. Verify signature with signer public key.
+6. Verify `previous_receipt_hashes` links for chains.
 
-If any step fails, the receipt (or chain) is marked invalid with specific error messages.
+## Use with @clgplatform/mcp
+
+- `@clgplatform/mcp` guards MCP tool execution and creates signed receipts.
+- `@clgplatform/verify` verifies those receipts afterward.
 
 ## Status
 
-**Beta** — API may change before 1.0.0 stable.
+Beta.
 
 ## License
 
-[Business Source License 1.1](./LICENSE)
+BUSL-1.1. See [`LICENSE`](./LICENSE).
