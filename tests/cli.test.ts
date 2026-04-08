@@ -21,7 +21,7 @@ describe('CLI', () => {
     writeFileSync(keyFile, publicKey);
 
     const receipt = buildReceipt(
-      { task_id: 't1', decision_outcome: 'approve' },
+      { receipt_kind: 'mandate_evaluation', task_id: 't1', decision_outcome: 'approve' },
       privateKey,
     );
     receiptFile = join(dir, 'receipt.json');
