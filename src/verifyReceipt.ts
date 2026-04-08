@@ -1,79 +1,28 @@
 import { canonicalize } from './canonicalizer.js';
 import { sha256, verifySignature } from './crypto.js';
 import type { Receipt, VerificationResult, PublicKeyResolver } from './types.js';
+import {
+  getCanonicalFields as getCanonicalFieldsFromSdk,
+} from '@clgplatform/sdk';
 
 /**
- * Canonical signed fields for receipt_version 1.1.0.
+ * Canonical field definitions are imported from @clgplatform/sdk.
+ * This eliminates duplication with the platform's receipt generators
+ * and internal verifier.
  *
- * These are the exact fields included in the `unsigned` object by the
- * platform's receipt generators before hashing. The hash is SHA-256 of
- * the canonical JSON of an object containing exactly these fields.
- *
- * Fields NOT in this list (receipt_id, receipt_kind, algorithm, agent_id,
- * task_input, output, top_p, top_k, passthrough_hash, created_at, version,
- * data_source_warnings, etc.) are metadata attached after signing and are
- * NOT part of the signed content.
- *
- * Two receipt kinds exist:
- * - `agent_decision`: 25 fields (no decision_outcome)
- * - `mandate_evaluation`: 26 fields (includes decision_outcome)
+ * See sdk/src/canonicalFields.ts for the single source of truth.
  */
-const BASE_CANONICAL_FIELDS_V1_1: readonly string[] = [
-  'receipt_version',
-  'workflow_id',
-  'task_id',
-  'deployer_id',
-  'model_id',
-  'model_provider',
-  'model_version_hash',
-  'temperature',
-  'task_input_hash',
-  'data_sources',
-  'reasoning_artifact_hash',
-  'artifact_categories',
-  'reasoning_steps_count',
-  'tools_invoked',
-  'confidence_score',
-  'output_hash',
-  'decision_type',
-  'decision_value',
-  'alternatives_considered',
-  'human_override',
-  'previous_receipt_hashes',
-  'chain_position',
-  'workflow_depth',
-  'system_instruction_hash',
-  'timestamp',
-];
-
-/** Additional field for mandate_evaluation receipts. */
-const MANDATE_EVALUATION_EXTRA_FIELDS: readonly string[] = ['decision_outcome'];
 
 /** Fields that must be present in every valid receipt. */
 const REQUIRED_FIELDS = ['receipt_hash', 'signature_value', 'signing_key_id'];
 
 /**
- * Determine canonical field set based on receipt kind.
- *
- * mandate_evaluation receipts include `decision_outcome` in the signed area;
- * agent_decision receipts do not.
- */
-function getCanonicalFields(receipt: Receipt): readonly string[] {
-  const kind = receipt.receipt_kind as string | undefined;
-  if (kind === 'mandate_evaluation') {
-    return [...BASE_CANONICAL_FIELDS_V1_1, ...MANDATE_EVALUATION_EXTRA_FIELDS];
-  }
-  return BASE_CANONICAL_FIELDS_V1_1;
-}
-
-/**
  * Extract the signed content from a receipt by picking only canonical fields.
- *
- * Only fields defined in the canonical set for this receipt kind are included.
- * This ensures that extra API-response metadata does not affect the hash computation.
+ * Field list comes from @clgplatform/sdk getCanonicalFields().
  */
 function extractSignedContent(receipt: Receipt): Record<string, unknown> {
-  const fields = getCanonicalFields(receipt);
+  const kind = receipt.receipt_kind as string | undefined;
+  const fields = getCanonicalFieldsFromSdk(kind);
   const content: Record<string, unknown> = {};
   for (const field of fields) {
     if (field in receipt) {
