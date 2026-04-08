@@ -2,7 +2,9 @@
 
 > Standalone cryptographic verifier for CLG decision receipts. Trust math, not us.
 
-Verifies the integrity and authenticity of signed decision receipts produced by the [CLG Platform](https://clgplatform.com) — without contacting the platform itself.
+Part of the [CLG (Causal Liability Gateway)](https://clgplatform.com) product suite — a system that makes AI actions verifiable, mandate-bound, and technically auditable through signed decision receipts, tamper-evident chaining, and independent verification.
+
+This package verifies the integrity and authenticity of signed decision receipts produced by the CLG Platform — without contacting the platform itself.
 
 ## What it does
 
