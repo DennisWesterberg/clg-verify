@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { verifyReceipt } from './verifyReceipt.js';
 import { verifyChain } from './verifyChain.js';
-import { httpResolver, jwksResolver, staticResolver, fileResolver } from './resolvers.js';
+import { httpResolver, jwksResolver, fileResolver } from './resolvers.js';
 import type { PublicKeyResolver } from './types.js';
 
 const VERSION = '1.0.0-beta.1';
