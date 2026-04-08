@@ -23,8 +23,9 @@ It validates receipt integrity and authenticity cryptographically.
 - does not create receipts
 - does not replace runtime controls or governance processes
 
-It can verify offline when you provide a local key/resolver.
-By default, CLI/library flows may resolve keys over HTTP unless you pass a local resolver.
+It can verify offline when you provide a local key or resolver.
+The CLI defaults to HTTP key resolution unless you pass `--public-key`, `--jwks`, or `--offline`.
+Library usage resolves keys according to the PEM string or resolver you pass to `verifyReceipt` or `verifyChain`.
 
 ## Installation
 
