@@ -66,6 +66,6 @@
     "vitest": "^2.1.9"
   },
   "dependencies": {
-    "@clgplatform/sdk": "file:../clg-platform/sdk"
+    "@clgplatform/sdk": "1.2.0"
   }
 }
