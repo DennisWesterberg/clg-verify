@@ -1,39 +1,16 @@
-import { canonicalize } from './canonicalizer.js';
-import { sha256, verifySignature } from './crypto.js';
+import { verifySignature } from './crypto.js';
+import { computeCanonicalHash } from '@clgplatform/sdk';
 import type { Receipt, VerificationResult, PublicKeyResolver } from './types.js';
-import {
-  getCanonicalFields as getCanonicalFieldsFromSdk,
-} from '@clgplatform/sdk';
-
-/**
- * Canonical field definitions are imported from @clgplatform/sdk.
- * This eliminates duplication with the platform's receipt generators
- * and internal verifier.
- *
- * See sdk/src/canonicalFields.ts for the single source of truth.
- */
 
 /** Fields that must be present in every valid receipt. */
 const REQUIRED_FIELDS = ['receipt_hash', 'signature_value', 'signing_key_id'];
 
 /**
- * Extract the signed content from a receipt by picking only canonical fields.
- * Field list comes from @clgplatform/sdk getCanonicalFields().
- */
-function extractSignedContent(receipt: Receipt): Record<string, unknown> {
-  const kind = receipt.receipt_kind as string | undefined;
-  const fields = getCanonicalFieldsFromSdk(kind);
-  const content: Record<string, unknown> = {};
-  for (const field of fields) {
-    if (field in receipt) {
-      content[field] = receipt[field];
-    }
-  }
-  return content;
-}
-
-/**
  * Verify a single CLG decision receipt.
+ *
+ * Hash computation uses the shared SDK canonicalization flow
+ * (field selection → normalization → serialization → SHA-256).
+ * This is the same code path used by the platform's internal verifier.
  *
  * @param receipt The receipt object as returned by the CLG platform
  * @param publicKey Either a PEM string or a resolver function
@@ -52,10 +29,8 @@ export async function verifyReceipt(
     return present;
   });
 
-  // Compute hash of signed content
-  const signedContent = extractSignedContent(receipt);
-  const canonical = canonicalize(signedContent);
-  const computedHash = sha256(canonical);
+  // Compute hash using shared SDK canonicalization
+  const computedHash = computeCanonicalHash(receipt as Record<string, unknown>);
   const hashMatchesContent = computedHash === receipt.receipt_hash;
   if (!hashMatchesContent) {
     errors.push(
