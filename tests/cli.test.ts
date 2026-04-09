@@ -9,7 +9,7 @@ import { buildReceipt } from './helpers.js';
 describe('CLI', () => {
   const dir = join(tmpdir(), 'clg-verify-cli-test');
   const { publicKey, privateKey } = generateTestKeyPair();
-  const cliPath = join(process.cwd(), 'dist', 'cli.js');
+  const cliPath = join(process.cwd(), 'bin', 'clg-verify.js');
   let receiptFile: string;
   let chainFile: string;
   let keyFile: string;
@@ -93,6 +93,20 @@ describe('CLI', () => {
       expect(result.valid).toBe(false);
     } finally {
       try { unlinkSync(badFile); } catch { /* */ }
+    }
+  });
+
+  it('exits 2 for invalid JSON input', () => {
+    const malformedFile = join(dir, 'malformed.json');
+    writeFileSync(malformedFile, '{ not-json');
+
+    try {
+      execSync(`node ${cliPath} --public-key ${keyFile} receipt ${malformedFile}`, { stdio: 'pipe' });
+      expect.fail('should have exited');
+    } catch (e: unknown) {
+      expect((e as { status: number }).status).toBe(2);
+    } finally {
+      try { unlinkSync(malformedFile); } catch { /* */ }
     }
   });
 

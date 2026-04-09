@@ -50,7 +50,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "pretest": "npm run build",
     "test": "vitest run",
+    "pretest:coverage": "npm run build",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
