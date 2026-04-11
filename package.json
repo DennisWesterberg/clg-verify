@@ -1,6 +1,6 @@
 {
   "name": "@clgplatform/verify",
-  "version": "1.0.0-beta.3",
+  "version": "1.2.0",
   "description": "Standalone verifier for CLG signed decision receipts. Validates signatures and hash chains without contacting the CLG platform.",
   "keywords": [
     "clg",
@@ -18,7 +18,7 @@
   "bugs": {
     "url": "https://github.com/DennisWesterberg/clg-verify/issues"
   },
-  "author": "Aistrateg Malmö AB <dennis@aistrateg.se>",
+  "author": "Aistrateg Malm\u00f6 AB <dennis@aistrateg.se>",
   "license": "BUSL-1.1",
   "type": "module",
   "main": "./dist/index.cjs",
