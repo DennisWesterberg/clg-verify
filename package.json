@@ -1,6 +1,6 @@
 {
   "name": "@clgplatform/verify",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Standalone verifier for CLG signed decision receipts. Validates signatures and hash chains without contacting the CLG platform.",
   "keywords": [
     "clg",
@@ -68,6 +68,6 @@
     "vitest": "^2.1.9"
   },
   "dependencies": {
-    "@clgplatform/sdk": "1.2.0"
+    "@clgplatform/sdk": "^1.2.0"
   }
 }
