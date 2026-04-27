@@ -23,6 +23,8 @@ export interface VerificationResult {
     hashMatchesContent: boolean;
     signatureValid: boolean;
     requiredFieldsPresent: boolean;
+    /** Key binding check for receipt 1.3.0+. null for older versions or non-JWKS verification. */
+    keyBindingValid?: boolean | null;
   };
   errors: string[];
 }
