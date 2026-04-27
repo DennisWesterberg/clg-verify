@@ -1,6 +1,6 @@
 {
   "name": "@clgplatform/verify",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Standalone verifier for CLG signed decision receipts. Validates signatures and hash chains without contacting the CLG platform.",
   "keywords": [
     "clg",
