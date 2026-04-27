@@ -41,3 +41,31 @@ export interface ChainVerificationResult {
  * Resolves a signing key ID to its PEM-encoded public key.
  */
 export type PublicKeyResolver = (signing_key_id: string) => Promise<string>;
+
+/**
+ * A JSON Web Key (JWK) for ECDSA-P256, per RFC 7517.
+ */
+export interface JsonWebKey {
+  kty: 'EC';
+  crv: 'P-256';
+  x: string;
+  y: string;
+  kid: string;
+  use?: 'sig';
+  alg?: 'ES256';
+}
+
+/**
+ * A JWKS response per RFC 7517.
+ */
+export interface JwksResponse {
+  keys: JsonWebKey[];
+}
+
+/**
+ * Options for JWKS-based verification.
+ */
+export interface JwksVerifyOptions {
+  /** CLG platform base URL, e.g. https://clgplatform.com */
+  baseUrl: string;
+}
