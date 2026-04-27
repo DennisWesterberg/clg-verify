@@ -93,6 +93,33 @@ import { verifyChain, jwksResolver } from '@clgplatform/verify';
 const result = await verifyChain(receipts, jwksResolver('https://api.clgplatform.com/.well-known/clg-keys'));
 ```
 
+## JWKS Verification (v1.4.0+)
+
+Verify receipts using the platform's RFC 7517 JWKS endpoint — no manual key exchange needed:
+
+```ts
+import { verifyReceiptWithJwks } from '@clgplatform/verify';
+
+const result = await verifyReceiptWithJwks(receipt, {
+  baseUrl: 'https://clgplatform.com',
+});
+console.log(result.valid); // true if hash + signature check out
+```
+
+This fetches `/.well-known/jwks.json`, finds the key matching the receipt's
+`signing_key_id`, converts JWK→PEM, and verifies. Existing `verifyReceipt()` is unchanged.
+
+You can also use the lower-level functions directly:
+
+```ts
+import { fetchJwks, findKeyByKid, jwkToPem } from '@clgplatform/verify';
+
+const jwks = await fetchJwks('https://clgplatform.com');
+const jwk = findKeyByKid(jwks, receipt.signing_key_id);
+const pem = jwkToPem(jwk);
+// use pem with verifyReceipt or your own crypto
+```
+
 ## Resolvers
 
 - `httpResolver(baseUrl?)` → fetches `{baseUrl}/v1/keys/{kid}`

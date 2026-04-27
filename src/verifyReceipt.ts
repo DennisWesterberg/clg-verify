@@ -1,6 +1,8 @@
 import { verifySignature } from './crypto.js';
 import { computeCanonicalHash } from '@clgplatform/sdk';
-import type { Receipt, VerificationResult, PublicKeyResolver } from './types.js';
+import { fetchJwks, findKeyByKid } from './jwksClient.js';
+import { jwkToPem } from './jwkToPem.js';
+import type { Receipt, VerificationResult, PublicKeyResolver, JwksVerifyOptions } from './types.js';
 
 /** Fields that must be present in every valid receipt. */
 const REQUIRED_FIELDS = ['receipt_hash', 'signature_value', 'signing_key_id'];
@@ -71,4 +73,27 @@ export async function verifyReceipt(
     checks: { hashMatchesContent, signatureValid, requiredFieldsPresent },
     errors,
   };
+}
+
+/**
+ * Verify a single CLG decision receipt using JWKS for key resolution.
+ *
+ * Fetches the platform's /.well-known/jwks.json, finds the key matching
+ * the receipt's signing_key_id, converts JWK→PEM, and verifies.
+ *
+ * This is a convenience wrapper — existing verifyReceipt() is unchanged.
+ *
+ * @param receipt The receipt object
+ * @param options { baseUrl } — the CLG platform base URL
+ */
+export async function verifyReceiptWithJwks(
+  receipt: Receipt,
+  options: JwksVerifyOptions,
+): Promise<VerificationResult> {
+  const resolver: PublicKeyResolver = async (signingKeyId: string) => {
+    const jwks = await fetchJwks(options.baseUrl);
+    const jwk = findKeyByKid(jwks, signingKeyId);
+    return jwkToPem(jwk);
+  };
+  return verifyReceipt(receipt, resolver);
 }
