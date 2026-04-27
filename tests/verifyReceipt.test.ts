@@ -124,8 +124,11 @@ describe('verifyReceipt', () => {
   });
 
   it('ignores extra API metadata fields when computing hash', async () => {
+    // Use receipt_version 1.1.0 so that top_p/top_k are outside the signed area
+    // and treated as extra API metadata (they moved into signed area in 1.2.0).
     const receipt = buildReceipt(
       {
+        receipt_version: '1.1.0',
         receipt_kind: 'agent_decision',
         task_id: 't1',
         workflow_id: 'w1',
